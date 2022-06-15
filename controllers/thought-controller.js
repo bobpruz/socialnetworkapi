@@ -35,6 +35,7 @@ const thoughtController = {
       .then(({ _id }) => {
         return User.findOneAndUpdate(
           { _id: params.userId },
+          // also add to users thought Array
           { $push: { thoughts: _id } },
           { new: true }
         );
@@ -48,6 +49,23 @@ const thoughtController = {
       })
       .catch((err) => res.json(err));
   },
+   // add a reaction
+   addReaction({ params, body }, res) {
+    Thought.findOneAndUpdate(
+        { _id: params.thoughtId },
+        // add to the array in thought
+        { $push: { reactions: body } },
+        { new: true }
+    )
+        .then(dbUserData => {
+            if (!dbUserData) {
+                res.status(404).json({ message: 'No user found with this id!' });
+                return;
+            }
+            res.json(dbUserData);
+        })
+        .catch(err => res.json(err));
+},
   // remove thought
   removeThought({ params }, res) {
     Thought.findOneAndDelete({ _id: params.thoughtId })
@@ -57,6 +75,7 @@ const thoughtController = {
         }
         return User.findOneAndUpdate(
           { _id: params.userId },
+          // also remove from user thought array
           { $pull: { thoughts: params.thoughtId } },
           { new: true }
         );
@@ -69,6 +88,17 @@ const thoughtController = {
         res.json(dbuserData);
       })
       .catch((err) => res.json(err));
+  },
+    // remove reaction
+    removeReaction({ params }, res) {
+      Thought.findOneAndUpdate(
+          { _id: params.thoughtId },
+          // also remove from array in thought
+          { $pull: { reactions: { reactionId: params.reactionId } } },
+          { new: true }
+      )
+          .then(dbUserData => res.json(dbUserData))
+          .catch(err => res.json(err));
   },
 };
 
